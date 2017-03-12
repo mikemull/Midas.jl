@@ -5,9 +5,11 @@ using TimeSeries
 
 @enum FREQ fday=1 fmonth=2 fquarter=3 funknown=4
 
-export mixedfrequency, datafreq, FREQ, fquarter, fmonth
+export mixfrequencies,
+       datafreq, FREQ, fquarter, fmonth,
+       beta_weights_es, xweighted
 
-function mixedfrequency(lf_data, hf_data, xlag, horizon)
+function mixfrequencies(lf_data, hf_data, xlag, horizon)
 
   start_hf = find(x -> x >= lf_data.timestamp[1], hf_data.timestamp)[1]
   start_hf = start_hf - xlag - horizon + 1
@@ -29,6 +31,7 @@ function mixedfrequency(lf_data, hf_data, xlag, horizon)
   end
 
   hfv = transpose(reshape(hf_lags, (xlag, num_obs)))
+  hfv = hfv[:,end:-1:1]
 
   return  TimeArray(lf_data.timestamp, hfv)
 end
@@ -47,6 +50,23 @@ function datafreq(tsdata)
     return fday
   end
   return funknown
+end
+
+
+function xweighted(x)
+
+  w = beta_weights_es(size(x,2), 1, 5)
+
+  return x * w, repmat(w', size(x,2), 1)
+end
+
+
+function beta_weights_es(n, theta1, theta2)
+  u = linspace(1e-6, 1.0 - 1e-6, n)
+
+  beta_vals = u.^(theta1 - 1).*(1 - u).^(theta2 - 1)
+
+  return beta_vals / sum(beta_vals)
 end
 
 end # module
