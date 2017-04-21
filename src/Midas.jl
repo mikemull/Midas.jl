@@ -34,7 +34,11 @@ function example1()
   hf_g = percentchange(hf_data, :log) * 100
   lf_g = percentchange(lf_data, :log) * 100
 
-  x = mixfrequencies(lf_g[Date(1985,1,1):Date(2009,1,1)], hf_g, 3, 1)
+  x = mixfrequencies(lf_g,
+                     hf_g,
+                     3, 0, 1,
+                     start_date=Date(1985,1,1),
+                     end_date=Date(2009,1,1))
 
   xw, w = xweighted(x.values, 1, 5)
   y = lf_g[Date(1985,1,1):Date(2009,1,1)].values[:,1]

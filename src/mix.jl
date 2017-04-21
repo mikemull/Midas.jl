@@ -1,30 +1,48 @@
 
-function mixfrequencies(lf_data, hf_data, xlag, horizon)
+function mixfrequencies(lf_data,
+                        hf_data,
+                        xlag,
+                        ylag,
+                        horizon;
+                        start_date=nothing,
+                        end_date=nothing)
 
-  hf_data = hf_data[horizon + 1:end]
-
-  start_hf = find(x -> x >= lf_data.timestamp[1], hf_data.timestamp)[1]
-  start_hf = start_hf - horizon - xlag + 1
-
-  hf_gt = find(x -> x >= lf_data.timestamp[end], hf_data.timestamp)
-
-  if length(hf_gt) == 0
-    end_hf = length(hf_data)
-  else
-    end_hf = hf_gt[1] - horizon
+  if start_date == nothing
+    start_date = lf_data.timestamp[ylag + 1]
   end
 
-  num_obs = length(lf_data)
-
-  hf_lags = zeros(num_obs * xlag)
-  for i in eachindex(hf_data.values[start_hf:end_hf])
-           hf_lags[i] = hf_data.values[i+start_hf-1]
+  if end_date == nothing
+    end_date = lf_data.timestamp[end]
   end
 
-  hfv = transpose(reshape(hf_lags, (xlag, num_obs)))
-  hfv = hfv[:,end:-1:1]
+  min_y_date = lf_data.timestamp[1 + ylag]
+  min_x_date = hf_data.timestamp[1 + xlag + horizon]
 
-  return  TimeArray(lf_data.timestamp, hfv)
+  if ylag > 0
+    ylags = lag(lf_data, 1)
+    for lag in 2:ylag
+      yl = lag(lf_data, lag)
+      rename(yl, "ylag$(lag)")
+      merge(ylags, yl)
+    end
+  end
+
+  y = lf_data[start_date:end_date]
+  ylags = ylag > 0 ? ylags[start_date:end_date].values : Array{Float64}(length(y), 0)
+
+  #hf_data = hf_data[horizon + 1:end]
+
+  hf_lags = zeros(length(y), xlag)
+  irow = 1
+  for (t,v) in y
+    start_hf = find(x -> x >= t, hf_data.timestamp)[1]
+    hf_lags[irow, :] = hf_data.values[start_hf - horizon:-1:start_hf - horizon - xlag + 1]
+    irow += 1
+  end
+
+  hfv = [ylags hf_lags]
+
+  return  TimeArray(y.timestamp, hfv)
 end
 
 function datafreq(tsdata)
