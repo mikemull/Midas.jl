@@ -34,19 +34,21 @@ function example1()
   hf_g = percentchange(hf_data, :log) * 100
   lf_g = percentchange(lf_data, :log) * 100
 
-  x = mixfrequencies(lf_g,
-                     hf_g,
-                     3, 0, 1,
-                     start_date=Date(1985,1,1),
-                     end_date=Date(2009,1,1))
+  y, x, yfc, xfc = mixfrequencies(lf_g,
+                                  hf_g,
+                                  3, 0, 1,
+                                  start_date=Date(1985,1,1),
+                                  end_date=Date(2009,1,1))
 
   xw, w = xweighted(x.values, 1, 5)
-  y = lf_g[Date(1985,1,1):Date(2009,1,1)].values[:,1]
-  a, b = linreg(xw, y)
 
-  f = ssr_func(x.values, y)
+  yvals = y.values[:, 1]
+
+  a, b = linreg(xw, yvals)
+
+  f = ssr_func(x.values, yvals)
   #nlsolve(f, [0.6, 1.9, 1., 5.])
-  g! = ssr_grad_func(x.values, y)
+  g! = ssr_grad_func(x.values, yvals)
 
   res = optimize(f, g!, [a, b, 1., 5.], LBFGS())
 

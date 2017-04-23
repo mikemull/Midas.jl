@@ -28,10 +28,23 @@ function mixfrequencies(lf_data,
   end
 
   y = lf_data[start_date:end_date]
-  ylags = ylag > 0 ? ylags[start_date:end_date].values : Array{Float64}(length(y), 0)
+  y_forecast = lf_data[end_date:lf_data.timestamp[end]]
+  if ylag > 0
+    ylags_forecast = ylags[end_date:lf_data.timestamp[end]]
+    ylags = ylags[start_date:end_date].values
+  else
+    ylags_forecast = Array{Float64}(length(y_forecast), 0)
+    ylags = Array{Float64}(length(y), 0)
+  end
 
-  #hf_data = hf_data[horizon + 1:end]
+  hfv = [ylags xlags(y, hf_data, xlag, horizon)]
+  hfv_forecast = [ylags_forecast xlags(y_forecast, hf_data, xlag, horizon)]
 
+  return  y, TimeArray(y.timestamp, hfv), y_forecast, TimeArray(y_forecast.timestamp, hfv_forecast)
+end
+
+
+function xlags(y, hf_data, xlag, horizon)
   hf_lags = zeros(length(y), xlag)
   irow = 1
   for (t,v) in y
@@ -39,11 +52,9 @@ function mixfrequencies(lf_data,
     hf_lags[irow, :] = hf_data.values[start_hf - horizon:-1:start_hf - horizon - xlag + 1]
     irow += 1
   end
-
-  hfv = [ylags hf_lags]
-
-  return  TimeArray(y.timestamp, hfv)
+  return hf_lags
 end
+
 
 function datafreq(tsdata)
 
