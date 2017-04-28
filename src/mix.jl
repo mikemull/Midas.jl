@@ -28,9 +28,11 @@ function mixfrequencies(lf_data,
   end
 
   y = lf_data[start_date:end_date]
-  y_forecast = lf_data[end_date:lf_data.timestamp[end]]
+  start_forecast_idx = find(x -> x >= end_date, lf_data.timestamp)[1] + 1
+  start_forecast_date = lf_data.timestamp[start_forecast_idx]
+  y_forecast = lf_data[start_forecast_date:lf_data.timestamp[end]]
   if ylag > 0
-    ylags_forecast = ylags[end_date:lf_data.timestamp[end]]
+    ylags_forecast = ylags[start_forecast_date:lf_data.timestamp[end]].values
     ylags = ylags[start_date:end_date].values
   else
     ylags_forecast = Array{Float64}(length(y_forecast), 0)
