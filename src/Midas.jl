@@ -36,7 +36,7 @@ function example1()
 
   y, x, yfc, xfc = mixfrequencies(lf_g,
                                   hf_g,
-                                  3, 0, 1,
+                                  3, 1, 1,
                                   start_date=Date(1985,1,1),
                                   end_date=Date(2009,1,1))
 

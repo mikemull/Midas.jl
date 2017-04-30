@@ -12,7 +12,7 @@ function mixfrequencies(lf_data,
   end
 
   if end_date == nothing
-    end_date = lf_data.timestamp[end]
+    end_date = lf_data.timestamp[end - 1]
   end
 
   min_y_date = lf_data.timestamp[1 + ylag]
@@ -39,10 +39,15 @@ function mixfrequencies(lf_data,
     ylags = Array{Float64}(length(y), 0)
   end
 
-  hfv = [ylags xlags(y, hf_data, xlag, horizon)]
-  hfv_forecast = [ylags_forecast xlags(y_forecast, hf_data, xlag, horizon)]
+  hfv = xlags(y, hf_data, xlag, horizon)
+  hfv_forecast = xlags(y_forecast, hf_data, xlag, horizon)
 
-  return  y, TimeArray(y.timestamp, hfv), y_forecast, TimeArray(y_forecast.timestamp, hfv_forecast)
+  return  y,
+          ylags,
+          TimeArray(y.timestamp, hfv),
+          y_forecast,
+          ylags_forecast,
+          TimeArray(y_forecast.timestamp, hfv_forecast)
 end
 
 
