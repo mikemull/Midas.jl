@@ -13,22 +13,30 @@ function jacobian_wx(x, theta1, theta2)
   return [jt1 jt2]
 end
 
-function ssr_func(x, y)
+function ssr_func(x, y, yl)
   function ssr(a)
     xw, w = xweighted(x, a[3], a[4])
-    error = y - a[1] - a[2] * xw
+    if yl == nothing
+      error = y - a[1] - a[2] * xw
+    else
+      error= y - a[1] - a[2] * xw - yl * a[5]
+    end
     return (error' * error)[1]
   end
 end
 
-function ssr_grad_func(x, y)
+function ssr_grad_func(x, y, yl)
   function ssr_grad(a, storage)
     jwx = jacobian_wx(x, a[3], a[4])
     xw, w = xweighted(x, a[3], a[4])
 
-    error = y - a[1] - a[2] * xw
-
-    jac_e = [ones(size(xw)) xw (a[2] * jwx)]
+    if yl == nothing
+      error = y - a[1] - a[2] * xw
+      jac_e = [ones(size(xw)) xw (a[2] * jwx)]
+    else
+      error = y - a[1] - a[2] * xw - yl * a[5]
+      jac_e = [ones(size(xw)) xw (a[2] * jwx) yl]
+    end
 
     jac = zeros(size(jac_e))
     for i=1:length(a)
