@@ -9,7 +9,7 @@ using MultivariateStats
 
 export mixfrequencies,
        datafreq, FREQ, fquarter, fmonth,
-       beta_weights_es, xweighted, ssr_func, example1, example1_data,
+       beta_weights_es, xweighted, ssr_func, example1, example1data,
        jacobian_wx
 
 include("mix.jl")
@@ -28,7 +28,29 @@ function beta_weights_es(n, theta1, theta2)
   return beta_vals / sum(beta_vals)
 end
 
-function example1_data()
+function estimate(y, yl, x)
+  xw, w = xweighted(x.values, 1, 5)
+
+  yvals = y.values[:, 1]
+
+  c = llsq([xw yl.values], y.values)
+
+  f = ssr_func(x.values, yvals, yl.values)
+  g! = ssr_grad_func(x.values, yvals, yl.values)
+
+  optimize(f, g!, [c[1:2]; [1; 5]; c[3:end]], LBFGS())
+end
+
+function forecast(xfc, yfcl, res)
+  copt = Optim.minimizer(res)
+
+  xw, w = xweighted(xfc.values, copt[3], copt[4])
+  yf = copt[1] +  copt[2] * xw + copt[end] * yfcl.values
+
+  return yf
+end
+
+function example1data()
   hf_data = readtimearray("./data/farmpay.csv", format="yyyy-mm-dd")
   lf_data = readtimearray("./data/gdp.csv", format="yyyy-mm-dd")
 
@@ -43,23 +65,13 @@ function example1_data()
 end
 
 function example1()
-  y, yl, x, yfc, yfcl, xfc = example1_data()
+  y, yl, x, yfc, yfcl, xfc = example1data()
 
-  xw, w = xweighted(x.values, 1, 5)
+  res = estimate(y, yl, x)
 
-  yvals = y.values[:, 1]
+  yf = forecast(xfc, yfcl, res)
 
-  # a, b = linreg([xw yl.values], yvals)
-
-  c = llsq([xw yl.values], y.values)
-
-  f = ssr_func(x.values, yvals, yl.values)
-  #nlsolve(f, [0.6, 1.9, 1., 5.])
-  g! = ssr_grad_func(x.values, yvals, yl.values)
-
-  res = optimize(f, g!, [c[1:2]; [1; 5]; c[3:end]], LBFGS())
-
-  return res
+  return yf
 end
 
 end # module
