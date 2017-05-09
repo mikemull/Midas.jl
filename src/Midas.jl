@@ -7,10 +7,7 @@ using MultivariateStats
 
 @enum FREQ fday=1 fmonth=2 fquarter=3 funknown=4
 
-export mixfrequencies,
-       datafreq, FREQ, fquarter, fmonth,
-       beta_weights_es, xweighted, ssr_func, example1, example1data,
-       jacobian_wx
+export mixfrequencies, example1, example1data
 
 include("mix.jl")
 include("fit.jl")
