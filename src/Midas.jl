@@ -7,7 +7,7 @@ using MultivariateStats
 
 @enum FREQ fday=1 fmonth=2 fquarter=3 funknown=4
 
-export mixfrequencies, example1, example1data
+export mixfrequencies, example1, example1data, datafreq, fmonth, fquarter, beta_weights_es
 
 include("mix.jl")
 include("fit.jl")
@@ -40,6 +40,7 @@ end
 
 function forecast(xfc, yfcl, res)
   copt = Optim.minimizer(res)
+  println(copt)
 
   xw, w = xweighted(xfc.values, copt[3], copt[4])
   yf = copt[1] +  copt[2] * xw + copt[end] * yfcl.values
